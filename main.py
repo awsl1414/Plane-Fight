@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
 
+# 资源加载
+background = pygame.image.load("./resource/bg.png")
 play_image = pygame.image.load("./resource/player.png")
 bullet_image = pygame.image.load("./resource/bullet.png")
 
@@ -13,7 +15,7 @@ class PlayerPlane(object):
         self.image = play_image
         self.bullets = []
         self.speed = 5
-        self.last_shot_time = pygame.time.get_ticks()
+        self.last_shot_time = pygame.time.get_ticks()  # 记录上一次发射子弹的时间
 
     def display(self):
         self.screen.blit(self.image, (self.x, self.y))
@@ -43,12 +45,12 @@ class PlayerPlane(object):
         if (key_pressed[K_s] or key_pressed[K_DOWN]) and self.y < max_y:
             self.y += self.speed
 
-    # 添加射击频率控制
+    # 发射子弹
     def fire(self):
-        # 没有具体实现，但可以用一个时间间隔来控制发射
-        shot_interval = 1000
+        # 控制子弹发射频率
+        shot_interval = 1000  # 1000ms
 
-        current_time = pygame.time.get_ticks()
+        current_time = pygame.time.get_ticks()  # 获取当前时间
 
         if current_time - self.last_shot_time > shot_interval:
             self.bullets.append(Bullet(self.screen, self.x, self.y))
@@ -66,7 +68,7 @@ class Bullet(object):
         self.screen.blit(self.image, (self.x, self.y))
 
     def move(self):
-        self.y -= 5
+        self.y -= 8
 
     def judge(self):
         if self.y < 0:
@@ -76,12 +78,12 @@ class Bullet(object):
 
 
 def main():
+    # 初始化pygame
     pygame.init()
 
     screen_size = 800, 600
     screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption("飞机大战")
-    background = pygame.image.load("./resource/bg.png")
 
     player = PlayerPlane(screen_temp=screen)
 
