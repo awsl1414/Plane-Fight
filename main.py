@@ -1,18 +1,36 @@
+from random import randint
 import pygame
 from pygame.locals import *
 
-# 资源加载
-background = pygame.image.load("./resource/bg.png")
-play_image = pygame.image.load("./resource/player.png")
-bullet_image = pygame.image.load("./resource/bullet.png")
+# 初始化pygame
+pygame.init()
+pygame.mixer.init()
+
+# 图片资源加载
+BACKGROUND_IMAGE_PATH = pygame.image.load("./resource/bg.png")
+PLAYER_IMAGE_PATH = pygame.image.load("./resource/player.png")
+BULLET_IMAGE_PATH = pygame.image.load("./resource/bullet.png")
+ENEMY1_IMAGE_PATH = pygame.image.load("./resource/enemy.png")
+ENEMY2_IMAGE_PATH = pygame.image.load("./resource/enemy2.png")
+UFO_IMAGE_PATH = pygame.image.load("./resource/ufo.png")
+BOMB_IMAGE_PATH = pygame.image.load("./resource/bomb.png")
+
+# 音频资源加载
+pygame.mixer_music.load("./resource/bg_music.mp3")
+
+# 音量设置
+# pygame.mixer.music.set_volume(0.5)  # 设置音量范围为 0.0 到 1.0
+
+# 播放背景音乐（-1表示循环播放，0表示播放一次）
+pygame.mixer.music.play(-1)
 
 
 class PlayerPlane(object):
-    def __init__(self, screen_temp):
+    def __init__(self, screen_temp, PLAYER_IMAGE_PATH):
         self.x = 350
         self.y = 420
         self.screen = screen_temp
-        self.image = play_image
+        self.image = PLAYER_IMAGE_PATH
         self.bullets = []
         self.speed = 5
         self.last_shot_time = pygame.time.get_ticks()  # 记录上一次发射子弹的时间
@@ -62,7 +80,7 @@ class Bullet(object):
         self.x = x + 16
         self.y = y - 24
         self.screen = screen_temp
-        self.image = bullet_image
+        self.image = BULLET_IMAGE_PATH
 
     def display(self):
         self.screen.blit(self.image, (self.x, self.y))
@@ -77,22 +95,42 @@ class Bullet(object):
             return False
 
 
-def main():
-    # 初始化pygame
-    pygame.init()
+class EnemyPlane(object):
+    def __init__(self, screen_temp, enemy_image):
+        self.image = enemy_image
+        self.screen = screen_temp
+        self.x = randint(0, self.screen.get_width() - self.image.get_width() + 1)
+        self.y = 0 - self.image.get_height()
+        # self.y = 0
 
-    screen_size = 800, 600
+    def display(self):
+        self.screen.blit(self.image, (self.x, self.y))
+
+    def move(self):
+        if self.y < self.screen.get_height():
+            self.y += 2
+        else:
+            self.y = 0
+            self.x = randint(0, self.screen.get_width() - self.image.get_width() + 1)
+
+
+def main():
+
+    screen_size = (800, 600)
     screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption("飞机大战")
 
-    player = PlayerPlane(screen_temp=screen)
+    player = PlayerPlane(screen_temp=screen, PLAYER_IMAGE_PATH=PLAYER_IMAGE_PATH)
+    enemy1 = EnemyPlane(screen_temp=screen, enemy_image=ENEMY1_IMAGE_PATH)
 
     clock = pygame.time.Clock()
 
     while True:
-        screen.blit(background, (0, 0))
+        screen.blit(BACKGROUND_IMAGE_PATH, (0, 0))
         player.update()
         player.fire()
+        enemy1.display()
+        enemy1.move()
 
         for event in pygame.event.get():
             if event.type == QUIT:
