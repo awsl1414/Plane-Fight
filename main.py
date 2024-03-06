@@ -6,6 +6,9 @@ from pygame.locals import *
 pygame.init()
 pygame.mixer.init()
 
+# 控制子弹发射频率
+BULLET_SPEED_TIME = 1000  # 1000ms
+
 # 图片资源加载
 BACKGROUND_IMAGE_PATH = pygame.image.load("./resource/bg.png")
 PLAYER_IMAGE_PATH = pygame.image.load("./resource/player.png")
@@ -65,12 +68,10 @@ class PlayerPlane(object):
 
     # 发射子弹
     def fire(self):
-        # 控制子弹发射频率
-        shot_interval = 1000  # 1000ms
 
         current_time = pygame.time.get_ticks()  # 获取当前时间
 
-        if current_time - self.last_shot_time > shot_interval:
+        if current_time - self.last_shot_time > BULLET_SPEED_TIME:
             self.bullets.append(Bullet(self.screen, self.x, self.y))
             self.last_shot_time = current_time
 
@@ -114,6 +115,10 @@ class EnemyPlane(object):
             self.x = randint(0, self.screen.get_width() - self.image.get_width() + 1)
 
 
+def crash():
+    pass
+
+
 def main():
 
     screen_size = (800, 600)
@@ -122,6 +127,7 @@ def main():
 
     player = PlayerPlane(screen_temp=screen, PLAYER_IMAGE_PATH=PLAYER_IMAGE_PATH)
     enemy1 = EnemyPlane(screen_temp=screen, enemy_image=ENEMY1_IMAGE_PATH)
+    enemy2 = EnemyPlane(screen_temp=screen, enemy_image=ENEMY2_IMAGE_PATH)
 
     clock = pygame.time.Clock()
 
@@ -131,7 +137,8 @@ def main():
         player.fire()
         enemy1.display()
         enemy1.move()
-
+        enemy2.display()
+        enemy2.move()
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()  # 卸载所有的模块
