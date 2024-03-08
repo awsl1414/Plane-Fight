@@ -5,10 +5,7 @@ import pygame
 SCREEN_RECT = pygame.Rect(0, 0, 800, 600)
 # 刷新的帧率
 FRAME_PER_SEC = 60
-# 创建敌机的定时器常量
-CREATE_ENEMY_EVENT = pygame.USEREVENT
-# 英雄发射子弹事件
-HERO_FIRE_EVENT = pygame.USEREVENT + 1
+
 
 BULLET_SPEED_TIME = 300
 
@@ -39,6 +36,9 @@ class Background(GameSprite):
 
         # 调用父类方法实现精灵的创建（image/rect/speed）
         super().__init__("./resource/bg.png")
+        pygame.mixer.init()
+        pygame.mixer_music.load("./resource/bg_music.mp3")
+        pygame.mixer.music.play(-1)
 
         # 判断是否是交替图像，如果是，需要设置初始位置
         if is_alt:
@@ -200,6 +200,18 @@ if __name__ == "__main__":
         hero_group.draw(screen)
         enemy_group.update()
         enemy_group.draw(screen)
+        # 子弹摧毁敌机
+        pygame.sprite.groupcollide(hero.bullets, enemy_group, True, True)
+
+        # 敌机撞英雄
+        enemies = pygame.sprite.spritecollide(hero, enemy_group, True)
+        # 判断是否有内容
+        if len(enemies) > 0:
+
+            # 牺牲英雄飞机
+            hero.kill()
+            # print("你输了")
+            # exit()
 
         # 刷新屏幕
         pygame.display.update()
