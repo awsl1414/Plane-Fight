@@ -9,6 +9,10 @@ FRAME_PER_SEC = 60
 
 BULLET_SPEED_TIME = 300
 
+CREATE_ENEMY1_EVENT = pygame.USEREVENT
+
+CREATE_ENEMY2_EVENT = pygame.USEREVENT + 1
+
 
 class GameSprite(pygame.sprite.Sprite):
     """飞机大战游戏精灵"""
@@ -105,6 +109,7 @@ class Hero(GameSprite):
             # 创建子弹精灵
             bullet = Bullet()
             self.bullets.add(bullet)
+            bullet_sound.play()
             self.last_shot_time = current_time
 
             # 设置精灵的位置
@@ -162,11 +167,24 @@ class Bullet(GameSprite):
         print("子弹被销毁")
 
 
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, center):
+        super().__init__()
+
+        self.image = pygame.image.load("./resource/bomb.png")
+        self.rect = self.image.get_rect(center=center)
+        self.timer = pygame.time.get_ticks()
+
+    def update(self):
+
+        now = pygame.time.get_ticks()
+        if now - self.timer > 50:
+            self.timer = now
+            self.kill()  # 播放完毕后销毁爆炸精灵
+
+
 # 创建英雄精灵
 hero = Hero()
-# 创建敌机精灵
-enemy1 = Enemy("./resource/enemy.png")
-enemy2 = Enemy("./resource/enemy2.png")
 
 
 # 创建背景精灵组
@@ -175,17 +193,21 @@ bg_group = pygame.sprite.Group(Background(), Background(is_alt=True))
 
 hero_group = pygame.sprite.Group(hero)
 
-# 创建敌机精灵组
-enemy_group = pygame.sprite.Group(enemy1, enemy2)
+
+enemy_group = pygame.sprite.Group()
 
 
 clock = pygame.time.Clock()
+explosion_sound = pygame.mixer.Sound("./resource/bomb_music.mp3")
+bullet_sound = pygame.mixer.Sound("./resource/bullet_music.wav")
 if __name__ == "__main__":
     # 初始化 Pygame
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     clock = pygame.time.Clock()
-
+    pygame.time.set_timer(CREATE_ENEMY1_EVENT, 1000)  # 每1秒创建敌机1
+    pygame.time.set_timer(CREATE_ENEMY2_EVENT, 3000)  # 每3秒创建敌机2
     while True:
         for event in pygame.event.get():
 
@@ -193,6 +215,16 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            elif event.type == CREATE_ENEMY1_EVENT:
+                # 创建敌机1
+                enemy1 = Enemy("./resource/enemy.png")
+
+                enemy_group.add(enemy1)
+            elif event.type == CREATE_ENEMY2_EVENT:
+                # 创建敌机2
+                enemy2 = Enemy("./resource/enemy2.png")
+
+                enemy_group.add(enemy2)
 
         bg_group.update()
         bg_group.draw(screen)
@@ -201,17 +233,26 @@ if __name__ == "__main__":
         enemy_group.update()
         enemy_group.draw(screen)
         # 子弹摧毁敌机
-        pygame.sprite.groupcollide(hero.bullets, enemy_group, True, True)
+        # pygame.sprite.groupcollide(hero.bullets, enemy_group, True, True)
 
-        # 敌机撞英雄
-        enemies = pygame.sprite.spritecollide(hero, enemy_group, True)
-        # 判断是否有内容
-        if len(enemies) > 0:
+        # # 敌机撞英雄
+        # enemies = pygame.sprite.spritecollide(hero, enemy_group, True)
+        # # 判断是否有内容
+        # if len(enemies) > 0:
 
-            # 牺牲英雄飞机
-            hero.kill()
-            # print("你输了")
-            # exit()
+        #     # 牺牲英雄飞机
+        #     hero.kill()
+        #     # print("你输了")
+        #     # exit()
+        for bullet in hero.bullets:
+            hits = pygame.sprite.spritecollide(bullet, enemy_group, True)
+            for hit in hits:
+                explosion_sound.play()
+                explosion_group = pygame.sprite.Group()
+                explosion = Explosion(hit.rect.center)
+                explosion_group.add(explosion)
+                explosion_group.update()
+                explosion_group.draw(screen)
 
         # 刷新屏幕
         pygame.display.update()
