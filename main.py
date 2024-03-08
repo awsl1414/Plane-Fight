@@ -170,8 +170,8 @@ class Bullet(GameSprite):
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, center):
         super().__init__()
-
-        self.image = pygame.image.load("./resource/bomb.png")
+        bomb_image = pygame.image.load("./resource/bomb.png")
+        self.image = pygame.transform.scale(bomb_image, (150, 150))
         self.rect = self.image.get_rect(center=center)
         self.timer = pygame.time.get_ticks()
 
@@ -235,15 +235,22 @@ if __name__ == "__main__":
         # 子弹摧毁敌机
         # pygame.sprite.groupcollide(hero.bullets, enemy_group, True, True)
 
-        # # 敌机撞英雄
-        # enemies = pygame.sprite.spritecollide(hero, enemy_group, True)
-        # # 判断是否有内容
-        # if len(enemies) > 0:
+        # 敌机撞英雄
+        enemies = pygame.sprite.spritecollide(hero, enemy_group, True)
+        # 判断是否有内容
+        if len(enemies) > 0:
+            for enemy in enemies:
+                explosion_sound.play()
+                explosion_group = pygame.sprite.Group()
+                explosion = Explosion(enemy.rect.center)
+                explosion_group.add(explosion)
+                explosion_group.update()
+                explosion_group.draw(screen)
 
-        #     # 牺牲英雄飞机
-        #     hero.kill()
-        #     # print("你输了")
-        #     # exit()
+            # 牺牲英雄飞机
+            hero.kill()
+            # print("你输了")
+            # exit()
         for bullet in hero.bullets:
             hits = pygame.sprite.spritecollide(bullet, enemy_group, True)
             for hit in hits:
@@ -251,6 +258,7 @@ if __name__ == "__main__":
                 explosion_group = pygame.sprite.Group()
                 explosion = Explosion(hit.rect.center)
                 explosion_group.add(explosion)
+                bullet.kill()
                 explosion_group.update()
                 explosion_group.draw(screen)
 
