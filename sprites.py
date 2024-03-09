@@ -7,12 +7,12 @@ SCREEN_RECT = pygame.Rect(0, 0, 800, 600)
 # 刷新的帧率
 FRAME_PER_SEC = 60
 
-# 子弹发射间隔 300ms
-BULLET_SPEED_TIME = 300
 
 # 创建敌机的定时器常量
 CREATE_ENEMY1_EVENT = pygame.USEREVENT
 CREATE_ENEMY2_EVENT = pygame.USEREVENT + 1
+
+HERO_FIRE_EVENT = pygame.USEREVENT + 2
 
 
 class GameSprite(pygame.sprite.Sprite):
@@ -74,7 +74,8 @@ class Hero(GameSprite):
 
         # 创建子弹的精灵组
         self.bullets = pygame.sprite.Group()
-        self.last_shot_time = pygame.time.get_ticks()  # 记录上一次发射子弹的时间
+
+        self.bullet_sound = pygame.mixer.Sound("./resource/bullet_music.wav")
 
     def update(self):
 
@@ -89,21 +90,16 @@ class Hero(GameSprite):
     def fire(self):
         # print("发射子弹")
 
-        # 获取当前时间
-        current_time = pygame.time.get_ticks()
+        # 创建子弹精灵
+        bullet = Bullet()
+        self.bullet_sound.play()
 
-        # 判断发射子弹的时间间隔是否大于发射时间(300ms)
-        if current_time - self.last_shot_time > BULLET_SPEED_TIME:
-            # 创建子弹精灵
-            bullet = Bullet()
-            # 将子弹精灵添加到精灵组
-            self.bullets.add(bullet)
-            # bullet_sound.play()
-            self.last_shot_time = current_time
+        # 设置精灵的位置
+        bullet.rect.bottom = self.rect.y
+        bullet.rect.centerx = self.rect.centerx
 
-            # 设置精灵的位置
-            bullet.rect.bottom = self.rect.y
-            bullet.rect.centerx = self.rect.centerx
+        # 将精灵添加到精灵组
+        self.bullets.add(bullet)
 
 
 class Enemy(GameSprite):
@@ -142,7 +138,6 @@ class Bullet(GameSprite):
 
         # 调用父类方法设施子弹图片 初始速度
         super().__init__("./resource/bullet.png", -2)
-        pygame.mixer.Sound("./resource/bullet_music.wav").play()
 
     def update(self):
 
@@ -165,9 +160,6 @@ class Explosion(pygame.sprite.Sprite):
 
         # 加载爆炸图片
         bomb_image = pygame.image.load("./resource/bomb.png")
-
-        # 播放爆炸音效
-        pygame.mixer.Sound("./resource/bomb_music.mp3").play()
 
         self.image = pygame.transform.scale(bomb_image, (150, 150))  # 缩放炸弹图片
         self.rect = self.image.get_rect(center=center)  # 设置位置

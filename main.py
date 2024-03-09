@@ -7,6 +7,9 @@ class PlaneGame(object):
         self.screen = pygame.display.set_mode(SCREEN_RECT.size)
         # 设置游戏标题
         pygame.display.set_caption("飞机大战 - awsl1414")
+
+        self.bomb_sound = pygame.mixer.Sound("./resource/bomb_music.mp3")
+
         # 创建游戏时钟
         self.clock = pygame.time.Clock()
 
@@ -16,6 +19,8 @@ class PlaneGame(object):
         # 设定定时器事件 - 创建敌机
         pygame.time.set_timer(CREATE_ENEMY1_EVENT, 1000)
         pygame.time.set_timer(CREATE_ENEMY2_EVENT, 3000)
+
+        pygame.time.set_timer(HERO_FIRE_EVENT, 500)
 
     def game_start(self):
         print("游戏开始...")
@@ -54,6 +59,8 @@ class PlaneGame(object):
             elif event.type == CREATE_ENEMY2_EVENT:
                 enemy2 = Enemy("./resource/enemy2.png")
                 self.enemy_group.add(enemy2)
+            elif event.type == HERO_FIRE_EVENT:
+                self.hero.fire()
 
         # 使用键盘提供的方法获取键盘按键 --按键元组
         keys_pressed = pygame.key.get_pressed()
@@ -67,9 +74,9 @@ class PlaneGame(object):
         if keys_pressed[pygame.K_w]:
             self.hero.rect.y -= 2
 
-        # 按空格键发射子弹
-        if keys_pressed[pygame.K_SPACE]:
-            self.hero.fire()
+        # # 按空格键发射子弹
+        # if keys_pressed[pygame.K_SPACE]:
+        #     self.hero.fire()
 
     def __create_sprites(self):
 
@@ -94,6 +101,7 @@ class PlaneGame(object):
             hits = pygame.sprite.spritecollide(bullet, self.enemy_group, True)
             for hit in hits:
                 explosion = Explosion(hit.rect.center)
+                self.bomb_sound.play()
                 self.explosion_group.add(explosion)
                 bullet.kill()
 
@@ -101,18 +109,19 @@ class PlaneGame(object):
         enemies = pygame.sprite.spritecollide(self.hero, self.enemy_group, True)
         # 判断是否有内容
         if len(enemies) > 0:
-            # 牺牲英雄飞机
-            self.hero.kill()
+
             for enemy in enemies:
                 # 获取碰撞点
                 explosion_center = enemy.rect.center
                 # 生成爆炸对象
                 explosion = Explosion(explosion_center)
-                # 将爆炸对象添加到显示组或更新组等（取决于您如何处理这些对象）
+
+                self.bomb_sound.play()
+                # 将爆炸对象添加到显示组或更新组
                 self.explosion_group.add(explosion)
-                self.explosion_group.update()
-                self.explosion_group.draw(self.screen)
-                pygame.display.update()
+                pygame.time.set_timer(ENEMY1_EVENT, 0)
+            # 牺牲英雄飞机
+            self.hero.kill()
             # 游戏结束
             PlaneGame.__game_over()
 
