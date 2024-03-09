@@ -3,14 +3,15 @@ import pygame
 
 # 屏幕大小的常量
 SCREEN_RECT = pygame.Rect(0, 0, 800, 600)
+
 # 刷新的帧率
 FRAME_PER_SEC = 60
 
-
+# 子弹发射间隔 300ms
 BULLET_SPEED_TIME = 300
 
+# 创建敌机的定时器常量
 CREATE_ENEMY1_EVENT = pygame.USEREVENT
-
 CREATE_ENEMY2_EVENT = pygame.USEREVENT + 1
 
 
@@ -38,9 +39,10 @@ class Background(GameSprite):
 
     def __init__(self, is_alt=False):
 
-        # 调用父类方法实现精灵的创建（image/rect/speed）
+        # 调用父类方法实现精灵的创建
         super().__init__("./resource/bg.png")
-        pygame.mixer.init()
+
+        # 加载背景音乐并循环播放
         pygame.mixer_music.load("./resource/bg_music.mp3")
         pygame.mixer.music.play(-1)
 
@@ -75,41 +77,28 @@ class Hero(GameSprite):
         self.last_shot_time = pygame.time.get_ticks()  # 记录上一次发射子弹的时间
 
     def update(self):
-        # 使用键盘提供的方法获取键盘按键 --按键元组
-        keys_pressed = pygame.key.get_pressed()
-        # 判断元组中对应的按键索引值 1
-        if keys_pressed[pygame.K_d]:
-            self.rect.x += 2
-        if keys_pressed[pygame.K_a]:
-            self.rect.x -= 2
-        if keys_pressed[pygame.K_s]:
-            self.rect.y += 2
-        if keys_pressed[pygame.K_w]:
-            self.rect.y -= 2
-        if keys_pressed[pygame.K_SPACE]:
-            self.fire()
 
         # 控制英雄不能离开屏幕
         if self.rect.x < 0:
             self.rect.x = 0
         if self.rect.y < 0:
             self.rect.y = 0
-
         elif self.rect.right > SCREEN_RECT.right:
             self.rect.right = SCREEN_RECT.right
 
-        self.bullets.update()
-        self.bullets.draw(screen)
-
     def fire(self):
-        print("发射子弹")
-        current_time = pygame.time.get_ticks()  # 获取当前时间
+        # print("发射子弹")
 
+        # 获取当前时间
+        current_time = pygame.time.get_ticks()
+
+        # 判断发射子弹的时间间隔是否大于发射时间(300ms)
         if current_time - self.last_shot_time > BULLET_SPEED_TIME:
             # 创建子弹精灵
             bullet = Bullet()
+            # 将子弹精灵添加到精灵组
             self.bullets.add(bullet)
-            bullet_sound.play()
+            # bullet_sound.play()
             self.last_shot_time = current_time
 
             # 设置精灵的位置
@@ -135,7 +124,7 @@ class Enemy(GameSprite):
         # 调用父类方法，保持垂直方向上的飞行
         super().update()
         # 判断是否飞出屏幕，如果是，需要从精灵组删除敌机
-        # if self.rect.y >= 300:
+
         if self.rect.y >= SCREEN_RECT.height:
             # print("飞出屏幕，需要从精灵组删除")
             # kill 方法可以将精灵从所有精灵组中移出，精灵就会被自动销毁
@@ -153,6 +142,7 @@ class Bullet(GameSprite):
 
         # 调用父类方法设施子弹图片 初始速度
         super().__init__("./resource/bullet.png", -2)
+        pygame.mixer.Sound("./resource/bullet_music.wav").play()
 
     def update(self):
 
@@ -164,20 +154,31 @@ class Bullet(GameSprite):
             self.kill()
 
     def __del__(self):
-        print("子弹被销毁")
+        # print("子弹被销毁")
+        pass
 
 
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, center):
+        # 调用父类的初始化方法
         super().__init__()
+
+        # 加载爆炸图片
         bomb_image = pygame.image.load("./resource/bomb.png")
-        self.image = pygame.transform.scale(bomb_image, (150, 150))
-        self.rect = self.image.get_rect(center=center)
+
+        # 播放爆炸音效
+        pygame.mixer.Sound("./resource/bomb_music.mp3").play()
+
+        self.image = pygame.transform.scale(bomb_image, (150, 150))  # 缩放炸弹图片
+        self.rect = self.image.get_rect(center=center)  # 设置位置
+
+        # 记录当前时间
         self.timer = pygame.time.get_ticks()
 
     def update(self):
-
+        # 当前时间
         now = pygame.time.get_ticks()
+        # 播放了50ms后，自动销毁
         if now - self.timer > 50:
             self.timer = now
-            self.kill()  # 播放完毕后销毁爆炸精灵
+            self.kill()
