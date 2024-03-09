@@ -3,11 +3,13 @@ from sprites import *
 
 class PlaneGame(object):
     def __init__(self) -> None:
+        self.hero_killed = False
         # 创建游戏窗口
         self.screen = pygame.display.set_mode(SCREEN_RECT.size)
         # 设置游戏标题
         pygame.display.set_caption("飞机大战 - awsl1414")
 
+        # 加载爆炸音效
         self.bomb_sound = pygame.mixer.Sound("./resource/bomb_music.mp3")
 
         # 创建游戏时钟
@@ -36,6 +38,9 @@ class PlaneGame(object):
             self.__update_sprites()
             # 更新显示
             pygame.display.update()
+
+            if self.hero_killed:
+                self.__game_over()
 
     @staticmethod  # 静态方法
     def __game_over():
@@ -109,7 +114,7 @@ class PlaneGame(object):
         enemies = pygame.sprite.spritecollide(self.hero, self.enemy_group, True)
         # 判断是否有内容
         if len(enemies) > 0:
-
+            self.bomb_sound.play()
             for enemy in enemies:
                 # 获取碰撞点
                 explosion_center = enemy.rect.center
@@ -119,11 +124,12 @@ class PlaneGame(object):
                 self.bomb_sound.play()
                 # 将爆炸对象添加到显示组或更新组
                 self.explosion_group.add(explosion)
-                pygame.time.set_timer(ENEMY1_EVENT, 0)
+
             # 牺牲英雄飞机
             self.hero.kill()
+            self.hero_killed = True
             # 游戏结束
-            PlaneGame.__game_over()
+            # PlaneGame.__game_over()
 
     def __update_sprites(self):
 
